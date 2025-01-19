@@ -216,3 +216,22 @@ func (cs *ChatService) GetMembers(chatID domain.ID) ([]domain.ID, error) {
 
 	return members, nil
 }
+func (cs *ChatService) SetAdmin(userID, chatID domain.ID) error {
+	if userID == "" {
+		return fmt.Errorf("user ID is empty")
+	}
+	if chatID == "" {
+		return fmt.Errorf("chat ID is empty")
+	}
+	err := cs.Chat.SetAdmin(userID, chatID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrUserNotFound) {
+			return fmt.Errorf("user  not found")
+		}
+		if errors.Is(err, repositories.ErrChatNotFound) {
+			return fmt.Errorf("chat  not found")
+		}
+		return fmt.Errorf("failed to set admin: %v", err)
+	}
+	return nil
+}

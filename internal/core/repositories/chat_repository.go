@@ -20,4 +20,5 @@ type ChatRepository interface {
 	AddUser(chatID domain.ID, userID []domain.ID) error
 	RemoveUser(chatID domain.ID, userID []domain.ID) error
 	GetMembers(chatID domain.ID) ([]domain.ID, error)
+	SetAdmin(userID, chatID domain.ID) error
 }

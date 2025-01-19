@@ -3,6 +3,7 @@ package services
 import (
 	"chat-app/internal/core/domain"
 	"chat-app/internal/core/repositories"
+	"errors"
 	"fmt"
 )
 
@@ -10,29 +11,9 @@ type UserService struct {
 	User repositories.UserRepository
 }
 
-//type UserRepository interface {
-//	Register(user domain.User) (userID domain.ID, err error)
-//	Login(username, password string) (isAuthorized bool, err error)
-//	GetChatList(userID domain.ID) (chatList []string, err error)
-//}
-
 func NewUserService(user repositories.UserRepository) *UserService {
 	return &UserService{User: user}
 }
-
-//type User struct {
-//	ID          ID
-//	Username    string
-//	FirstName   string
-//	LastName    string
-//	Password    string
-//	Gender      Gender
-//	Email       string
-//	Contacts    []ID
-//	DateOfBirth time.Time
-//	CreatedTime time.Time
-//	DeletedTime time.Time
-//}
 
 func ValidateUser(user domain.User) error {
 	if user.ID == "" {
@@ -80,28 +61,42 @@ func (us *UserService) Register(user domain.User) (userID domain.ID, err error) 
 	return userID, nil
 }
 
-func (us *UserService) Login(username, password string) (bool, error) {
+func (us *UserService) Login(username, password string) (domain.ID, error) {
 	if username == "" {
-		return false, fmt.Errorf("username is required")
+		return "", fmt.Errorf("username is required")
 	}
 	if password == "" {
-		return false, fmt.Errorf("password is required")
+		return "", fmt.Errorf("password is required")
 	}
 
-	isAuthenticated, err := us.User.Login(username, password)
+	userID, err := us.User.Login(username, password)
 	if err != nil {
-		return false, fmt.Errorf("failed to login:%v", err)
+		if errors.Is(err, repositories.ErrWrongLoginInfo) {
+			return "", fmt.Errorf("wrong login info: %v", err)
+		}
+		return "", fmt.Errorf("failed to login:%v", err)
 	}
-	return isAuthenticated, nil
+	return userID, nil
 }
 
-func (us *UserService) GetChatList(userID domain.ID) (chatList []string, err error) {
+func (us *UserService) GetChatIDList(userID domain.ID) (chatList []string, err error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user ID is required")
 	}
-	chatList, err = us.User.GetChatList(userID)
+	chatList, err = us.User.GetChatIDList(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chat list:%v", err)
 	}
 	return chatList, nil
+}
+
+func (us *UserService) GetUserInfo(userID domain.ID) (domain.User, error) {
+	user, err := us.User.GetUserInfo(userID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrUserNotFound) {
+			return domain.User{}, fmt.Errorf("%w:%v", repositories.ErrUserNotFound, err)
+		}
+		return domain.User{}, fmt.Errorf("failed to get user info:%v", err)
+	}
+	return user, nil
 }
