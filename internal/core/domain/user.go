@@ -5,7 +5,7 @@ import "time"
 type Gender int
 
 const (
-	Male Gender = iota
+	Male Gender = iota + 1
 	Female
 	NonBinary
 )
@@ -13,7 +13,7 @@ const (
 type ChatType int
 
 const (
-	Private ChatType = iota
+	Private ChatType = iota + 1
 	Group
 )
 
@@ -28,7 +28,7 @@ type User struct {
 	Gender      Gender
 	Email       string
 	Contacts    []ID
-	DateOfBirth time.Time
-	CreatedTime time.Time
-	DeletedTime time.Time
+	DateOfBirth *time.Time
+	CreatedTime *time.Time
+	DeletedTime *time.Time
 }
