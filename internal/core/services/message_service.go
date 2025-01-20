@@ -17,25 +17,25 @@ func NewMessageService(message repositories.MessageRepository) *MessageService {
 	}
 }
 
-func (ms *MessageService) SendMessage(chatID domain.ID, message string) error {
+func (ms *MessageService) SendMessage(chatID, userID domain.ID, message string) error {
 	if message == "" {
 		return fmt.Errorf("message cannot be empty")
 	}
 
-	if err := ms.Message.SendMessage(chatID, message); err != nil {
+	if err := ms.Message.SendMessage(chatID, userID, message); err != nil {
 		return fmt.Errorf("failed to send message: %v", err)
 	}
 	return nil
 }
 
-func (ms *MessageService) DeleteMessage(chatID, messageID domain.ID) error {
+func (ms *MessageService) DeleteMessage(chatID, userID, messageID domain.ID) error {
 	if chatID == "" {
 		return fmt.Errorf("chatID cannot be empty")
 	}
 	if messageID == "" {
 		return fmt.Errorf("messageID cannot be empty")
 	}
-	if err := ms.Message.DeleteMessage(chatID, messageID); err != nil {
+	if err := ms.Message.DeleteMessage(chatID, userID, messageID); err != nil {
 		return fmt.Errorf("failed to delete message: %v", err)
 	}
 	return nil
