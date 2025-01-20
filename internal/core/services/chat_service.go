@@ -74,10 +74,10 @@ func (cs *ChatService) CreateChat(chat domain.Chat) (domain.ID, error) {
 	if err != nil {
 
 		if errors.Is(err, repositories.ErrDuplicateChat) {
-			return "", fmt.Errorf("chat already exists: %w", err)
+			return "", fmt.Errorf("chat already exists: %v", err)
 		}
 
-		return "", fmt.Errorf("falied to create Chat: %w", err)
+		return "", fmt.Errorf("falied to create Chat: %v", err)
 	}
 
 	return chatID, nil

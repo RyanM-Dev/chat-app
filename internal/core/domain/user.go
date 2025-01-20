@@ -19,6 +19,10 @@ const (
 
 type ID string
 
+func (id ID) String() string {
+	return string(id)
+}
+
 type User struct {
 	ID          ID
 	Username    string
