@@ -26,7 +26,29 @@ func (s *SessionService) CreateSession(session domain.Session, ttl time.Duration
 	return s.SessionRepo.CreateSession(session, ttl)
 }
 
-func (s *SessionService) AddChat(sessionID string, chatID string, role string) error {
+func (s *SessionService) GetSession(sessionId domain.ID) (domain.Session, error) {
+	if sessionId == "" {
+		return domain.Session{}, errors.New("sessionID cannot be empty")
+	}
+	session, err := s.SessionRepo.GetSession(sessionId)
+	if err != nil {
+		return domain.Session{}, fmt.Errorf("error getting session: %v", err)
+	}
+	return session, nil
+}
+
+func (s *SessionService) GetSessionByUserID(userID domain.ID) (domain.Session, error) {
+	if userID == "" {
+		return domain.Session{}, errors.New("userID cannot be empty")
+	}
+	session, err := s.SessionRepo.GetSessionByUserID(userID)
+	if err != nil {
+		return domain.Session{}, fmt.Errorf("error getting session: %v", err)
+	}
+	return session, nil
+}
+
+func (s *SessionService) AddChatToSession(sessionID domain.ID, chatID domain.ID, role string) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID cannot be empty")
 	}
@@ -39,7 +61,7 @@ func (s *SessionService) AddChat(sessionID string, chatID string, role string) e
 	return s.SessionRepo.AddChatToSession(sessionID, chatID, role)
 }
 
-func (s *SessionService) RemoveChat(sessionID string, chatID string) error {
+func (s *SessionService) RemoveChatFromSession(sessionID domain.ID, chatID domain.ID) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID cannot be empty")
 	}
@@ -52,7 +74,7 @@ func (s *SessionService) RemoveChat(sessionID string, chatID string) error {
 	return nil
 }
 
-func (s *SessionService) UpdateChatRole(sessionID string, chatID string, role string) error {
+func (s *SessionService) UpdateChatRole(sessionID domain.ID, chatID domain.ID, role string) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID cannot be empty")
 	}
@@ -68,7 +90,7 @@ func (s *SessionService) UpdateChatRole(sessionID string, chatID string, role st
 	return nil
 }
 
-func (s *SessionService) IsUserInChat(sessionID string, chatID string) (string, error) {
+func (s *SessionService) IsUserInChat(sessionID domain.ID, chatID domain.ID) (string, error) {
 	if sessionID == "" {
 		return "", fmt.Errorf("sessionID cannot be empty")
 	}
@@ -85,7 +107,7 @@ func (s *SessionService) IsUserInChat(sessionID string, chatID string) (string, 
 	return role, nil
 }
 
-func (s *SessionService) DeleteSession(sessionID string) error {
+func (s *SessionService) DeleteSession(sessionID domain.ID) error {
 	if sessionID == "" {
 		return fmt.Errorf("sessionID cannot be empty")
 	}

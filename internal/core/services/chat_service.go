@@ -14,7 +14,7 @@ type ChatService struct {
 //type ChatRepository interface {
 //	CreateChat(chat domain.Chat) (chatID domain.ID, err error)
 //	FindChat(chatID domain.ID) (chat domain.Chat, err error)
-//	UpdateChat(chat domain.Chat) error
+//	UpdateChatName(chat domain.Chat) error
 //	DeleteChat(chatID domain.ID) error
 //	GetMessages(chatID domain.ID) ([]domain.Message, error)
 //	AddUser(chatID domain.ID, userID domain.ID) error
@@ -84,7 +84,7 @@ func (cs *ChatService) CreateChat(chat domain.Chat) (domain.ID, error) {
 
 }
 
-func (cs *ChatService) UpdateChat(UpdateChat domain.Chat) error {
+func (cs *ChatService) UpdateChatName(UpdateChat domain.Chat) error {
 	if err := ValidateChat(UpdateChat); err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (cs *ChatService) UpdateChat(UpdateChat domain.Chat) error {
 	chat.Name = UpdateChat.Name
 	chat.Owner = UpdateChat.Owner
 
-	err = cs.Chat.UpdateChat(chat)
+	err = cs.Chat.UpdateChatName(chat)
 	if err != nil {
 		return fmt.Errorf("falied to update Chat: %v", err)
 	}

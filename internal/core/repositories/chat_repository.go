@@ -14,10 +14,10 @@ var (
 type ChatRepository interface {
 	CreateChat(chat domain.Chat) (chatID domain.ID, err error)
 	FindChat(chatID domain.ID) (chat domain.Chat, err error)
-	UpdateChat(chat domain.Chat) error
+	UpdateChatName(chat domain.Chat) error
 	DeleteChat(chatID domain.ID) error
 	GetMessages(chatID domain.ID) ([]domain.Message, error)
-	AddUser(chatID domain.ID, userID []domain.ID) error
+	AddUser(chatID domain.ID, userIDs []domain.ID) error
 	RemoveUser(chatID domain.ID, userID []domain.ID) error
 	GetMembers(chatID domain.ID) ([]domain.ID, error)
 	SetAdmin(userID, chatID domain.ID) error

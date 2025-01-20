@@ -3,6 +3,6 @@ package domain
 type Session struct {
 	SessionID     ID
 	UserID        ID
-	ChatIDAndName map[string]string // Map to store chat membership with roles (user, admin, owner)
+	ChatNameAndID map[string]string // map[chatName]chatID
 	ChatNameList  []string
 }

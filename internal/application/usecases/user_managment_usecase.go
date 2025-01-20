@@ -48,25 +48,27 @@ func (um *UserManagement) Login(username string, password string) (domain.Sessio
 	if err != nil {
 		return domain.Session{}, err
 	}
+
 	chatIDList, err := um.UserService.GetChatIDList(userID)
 	if err != nil {
 		return domain.Session{}, err
 	}
+
 	var chatNameList []string
-	var chatIDAndName map[string]string
+	var chatNameAndID map[string]string
 	for _, chatID := range chatIDList {
 		chat, err := um.ChatService.FindChat(domain.ID(chatID))
 		if err != nil {
 			return domain.Session{}, err
 		}
-		chatIDAndName[chat.Name] = chatID
+		chatNameAndID[chat.Name] = chatID
 		chatNameList = append(chatNameList, chat.Name)
 	}
 	sessionID := domain.ID(uuid.New().String())
 	session := domain.Session{
 		SessionID:     sessionID,
 		UserID:        userID,
-		ChatIDAndName: chatIDAndName,
+		ChatNameAndID: chatNameAndID,
 		ChatNameList:  chatNameList,
 	}
 
