@@ -2,13 +2,6 @@ package repositories
 
 import (
 	"chat-app/internal/core/domain"
-	"errors"
-)
-
-var (
-	ErrChatNotFound         = errors.New("chat not found")
-	ErrMissingChatParameter = errors.New("missing chat parameters")
-	ErrDuplicateChat        = errors.New("duplicate chat")
 )
 
 type ChatRepository interface {
@@ -20,5 +13,5 @@ type ChatRepository interface {
 	AddUser(chatID domain.ID, userIDs []domain.ID) error
 	RemoveUser(chatID domain.ID, userID []domain.ID) error
 	GetMembers(chatID domain.ID) ([]domain.ID, error)
-	SetAdmin(userID, chatID domain.ID) error
+	SetAdmin(adminID, chatID domain.ID) error
 }

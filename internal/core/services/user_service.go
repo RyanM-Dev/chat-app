@@ -79,15 +79,15 @@ func (us *UserService) Login(username, password string) (domain.ID, error) {
 	return userID, nil
 }
 
-func (us *UserService) GetChatIDList(userID domain.ID) (chatList []string, err error) {
+func (us *UserService) GetChatIDList(userID domain.ID) ([]domain.ID, error) {
 	if userID == "" {
 		return nil, fmt.Errorf("user ID is required")
 	}
-	chatList, err = us.User.GetChatIDList(userID)
+	chatIDList, err := us.User.GetChatIDList(userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chat list:%v", err)
 	}
-	return chatList, nil
+	return chatIDList, nil
 }
 
 func (us *UserService) GetUserInfo(userID domain.ID) (domain.User, error) {
@@ -99,4 +99,40 @@ func (us *UserService) GetUserInfo(userID domain.ID) (domain.User, error) {
 		return domain.User{}, fmt.Errorf("failed to get user info:%v", err)
 	}
 	return user, nil
+}
+
+func (us *UserService) AddContact(userID, contactID domain.ID) error {
+	if userID == "" {
+		return fmt.Errorf("user ID is required")
+	}
+	if contactID == "" {
+		return fmt.Errorf("contact ID is required")
+	}
+
+	err := us.User.AddContact(userID, contactID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrUserNotFound) {
+			return fmt.Errorf("user not found: %w", err)
+		}
+		return fmt.Errorf("failed to add contact: %w", err)
+	}
+	return nil
+}
+
+func (us *UserService) RemoveContact(userID, contactID domain.ID) error {
+	if userID == "" {
+		return fmt.Errorf("user ID is required")
+	}
+	if contactID == "" {
+		return fmt.Errorf("contact ID is required")
+	}
+
+	err := us.User.RemoveContact(userID, contactID)
+	if err != nil {
+		if errors.Is(err, repositories.ErrUserNotFound) {
+			return fmt.Errorf("user not found: %w", err)
+		}
+		return fmt.Errorf("failed to remove contact: %w", err)
+	}
+	return nil
 }

@@ -32,6 +32,7 @@ type User struct {
 	Gender      Gender
 	Email       string
 	Contacts    []ID
+	ChatIDList  []ID
 	DateOfBirth *time.Time
 	CreatedTime *time.Time
 	DeletedTime *time.Time

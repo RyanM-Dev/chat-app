@@ -61,7 +61,7 @@ func (um *UserManagement) Login(username string, password string) (domain.Sessio
 		if err != nil {
 			return domain.Session{}, err
 		}
-		chatNameAndID[chat.Name] = chatID
+		chatNameAndID[chat.Name] = string(chat.ID)
 		chatNameList = append(chatNameList, chat.Name)
 	}
 	sessionID := domain.ID(uuid.New().String())
@@ -73,4 +73,12 @@ func (um *UserManagement) Login(username string, password string) (domain.Sessio
 	}
 
 	return session, nil
+}
+
+func (um *UserManagement) AddContact(userID, contactID domain.ID) error {
+	return um.UserService.AddContact(userID, contactID)
+}
+
+func (um *UserManagement) RemoveContact(userID, contactID domain.ID) error {
+	return um.UserService.RemoveContact(userID, contactID)
 }

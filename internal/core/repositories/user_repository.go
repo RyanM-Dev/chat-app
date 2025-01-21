@@ -13,6 +13,8 @@ var (
 type UserRepository interface {
 	Register(user domain.User) (userID domain.ID, err error)
 	Login(username, password string) (userID domain.ID, err error)
-	GetChatIDList(userID domain.ID) (chatIDList []string, err error)
+	GetChatIDList(userID domain.ID) (chatIDList []domain.ID, err error)
 	GetUserInfo(userID domain.ID) (user domain.User, err error)
+	AddContact(userID, contactID domain.ID) error
+	RemoveContact(userID, contactID domain.ID) error
 }

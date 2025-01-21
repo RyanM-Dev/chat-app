@@ -201,29 +201,26 @@ func (cs *ChatService) GetMembers(chatID domain.ID) ([]domain.ID, error) {
 	if chatID == "" {
 		return nil, fmt.Errorf("missing chat id")
 	}
-	//chat, err := cs.Chat.FindChat(chatID)
-	//if err != nil {
-	//	if errors.Is(err, repositories.ErrChatNotFound) {
-	//		return nil, fmt.Errorf(" chat to get members not found: %w", err)
-	//	}
-	//	return nil, fmt.Errorf("failed to find chat to get members: %v", err)
-	//}
 
 	members, err := cs.Chat.GetMembers(chatID)
 	if err != nil {
+		if errors.Is(err, repositories.ErrChatNotFound) {
+			return nil, fmt.Errorf("%w: %v", repositories.ErrChatNotFound, err)
+		}
+
 		return nil, fmt.Errorf("falied to get members: %v", err)
 	}
 
 	return members, nil
 }
-func (cs *ChatService) SetAdmin(userID, chatID domain.ID) error {
-	if userID == "" {
+func (cs *ChatService) SetAdmin(adminID, chatID domain.ID) error {
+	if adminID == "" {
 		return fmt.Errorf("user ID is empty")
 	}
 	if chatID == "" {
 		return fmt.Errorf("chat ID is empty")
 	}
-	err := cs.Chat.SetAdmin(userID, chatID)
+	err := cs.Chat.SetAdmin(adminID, chatID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrUserNotFound) {
 			return fmt.Errorf("user  not found")
