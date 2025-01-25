@@ -24,7 +24,7 @@ func (cm *ChatManagement) CreateChat(chat domain.Chat, sessionID domain.ID) erro
 		return err
 	}
 
-	_, exist := session.ChatNameAndID[chat.Name]
+	_, exist := session.ChatMappings[chat.Name]
 	if exist {
 		return fmt.Errorf("chat name %s already exists", chat.Name)
 	}
@@ -62,7 +62,7 @@ func (cm *ChatManagement) UpdateChatName(currentChatName, nextChatName string, s
 		return err
 	}
 
-	chatID, exist := session.ChatNameAndID[currentChatName]
+	chatID, exist := session.ChatMappings[currentChatName]
 	if !exist {
 		return fmt.Errorf("wrong chat name")
 	}
@@ -114,7 +114,7 @@ func (cm *ChatManagement) GetMessages(chatName string, sessionID domain.ID) ([]d
 		return nil, err
 
 	}
-	chatID, exist := session.ChatNameAndID[chatName]
+	chatID, exist := session.ChatMappings[chatName]
 	if !exist {
 		return nil, fmt.Errorf("user is not in this chat or chat doesn't exist: %v", chatName)
 	}
@@ -220,7 +220,7 @@ func (cm *ChatManagement) chatAuthorization(chatID, sessionID domain.ID) (string
 		return "", err
 	}
 
-	userChatID, exist := session.ChatNameAndID[chat.Name]
+	userChatID, exist := session.ChatMappings[chat.Name]
 	if !exist {
 		return "", fmt.Errorf("user is not in this chat or chat doesn't exist: %v", chat.Name)
 	}

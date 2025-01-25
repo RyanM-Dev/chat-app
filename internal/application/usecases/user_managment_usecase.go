@@ -3,82 +3,100 @@ package usecases
 import (
 	"chat-app/internal/core/domain"
 	"chat-app/internal/core/services"
+	"fmt"
 	"github.com/google/uuid"
+	"log"
 )
 
 type UserManagement struct {
 	UserService    *services.UserService
 	ChatService    *services.ChatService
 	SessionService *services.SessionService
-	Sessions       *[]domain.Session
 }
 
-//type UserRepository interface {
-//	Register(user domain.User) (userID domain.ID, err error)
-//	Login(username, password string) (isAuthorized bool, err error)
-//	GetChatIDList(userID domain.ID) (chatIDList []string, err error)
-//	GetUserInfo(userID domain.ID) (user domain.User, err error)
-//}
-
-func NewUserManagement(userService *services.UserService, sessionService *services.SessionService, sessions *[]domain.Session) *UserManagement {
+func NewUserManagement(userService *services.UserService, sessionService *services.SessionService) *UserManagement {
 	return &UserManagement{
 		UserService:    userService,
 		SessionService: sessionService,
-		Sessions:       sessions,
 	}
 }
 
+// Register creates a new user account by delegating to the UserService, initializes a session, and appends it to Sessions.
 func (um *UserManagement) Register(user domain.User) (domain.Session, error) {
 	userID, err := um.UserService.Register(user)
 	if err != nil {
 		return domain.Session{}, err
 	}
-	sessionID := domain.ID(uuid.New().String())
-	session := domain.Session{
-		SessionID: sessionID,
+
+	newSession := um.createSession(userID)
+
+	return newSession, nil
+}
+
+// createSession is a helper function to create a new session for a user.
+func (um *UserManagement) createSession(userID domain.ID) domain.Session {
+	newSessionID := domain.ID(uuid.New().String())
+	return domain.Session{
+		SessionID: newSessionID,
 		UserID:    userID,
 	}
-	*um.Sessions = append(*um.Sessions, session)
-
-	return session, nil
-
 }
 func (um *UserManagement) Login(username string, password string) (domain.Session, error) {
 	userID, err := um.UserService.Login(username, password)
 	if err != nil {
-		return domain.Session{}, err
+		return domain.Session{}, fmt.Errorf("failed to log in: %w", err)
 	}
 
 	chatIDList, err := um.UserService.GetChatIDList(userID)
 	if err != nil {
 		return domain.Session{}, err
 	}
-
-	var chatNameList []string
-	var chatNameAndID map[string]string
-	for _, chatID := range chatIDList {
-		chat, err := um.ChatService.FindChat(domain.ID(chatID))
-		if err != nil {
-			return domain.Session{}, err
-		}
-		chatNameAndID[chat.Name] = string(chat.ID)
-		chatNameList = append(chatNameList, chat.Name)
+	if len(chatIDList) == 0 {
+		return domain.Session{}, fmt.Errorf("no chats found for user")
 	}
-	sessionID := domain.ID(uuid.New().String())
+
+	var chatNames []string
+	chatMapping := make(domain.ChatMapping)
+	for _, chatID := range chatIDList {
+		chat, err := um.ChatService.FindChat(chatID)
+		if err != nil {
+			// Log the error and continue
+			log.Printf("failed to find chat for ID %s: %v", chatID, err)
+			continue
+		}
+		chatMapping[chat.Name] = chat.ID
+		chatNames = append(chatNames, chat.Name)
+	}
+
+	sessionIDUUID := uuid.New()
+	if sessionIDUUID == uuid.Nil {
+		return domain.Session{}, fmt.Errorf("failed to generate session ID")
+	}
+	sessionID := domain.ID(sessionIDUUID.String())
 	session := domain.Session{
-		SessionID:     sessionID,
-		UserID:        userID,
-		ChatNameAndID: chatNameAndID,
-		ChatNameList:  chatNameList,
+		SessionID:    sessionID,
+		UserID:       userID,
+		ChatMappings: chatMapping,
+		ChatNames:    chatNames,
 	}
 
 	return session, nil
 }
 
 func (um *UserManagement) AddContact(userID, contactID domain.ID) error {
-	return um.UserService.AddContact(userID, contactID)
+	// Update the user in the database
+	err := um.UserService.AddContact(userID, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (um *UserManagement) RemoveContact(userID, contactID domain.ID) error {
-	return um.UserService.RemoveContact(userID, contactID)
+	// Update the user in the database
+	err := um.UserService.RemoveContact(userID, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

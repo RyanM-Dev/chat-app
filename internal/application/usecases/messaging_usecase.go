@@ -14,6 +14,14 @@ type Messaging struct {
 	SessionService *services.SessionService
 }
 
+func (m *Messaging) GetMessage(messageID domain.ID) (domain.Message, error) {
+	message, err := m.MessageService.GetMessage(messageID)
+	if err != nil {
+		return domain.Message{}, err
+	}
+	return message, nil
+}
+
 func NewMessaging(chatService *services.ChatService, messageService *services.MessageService, sessionService *services.SessionService) *Messaging {
 	return &Messaging{
 		ChatService:    chatService,
@@ -47,23 +55,24 @@ func (m *Messaging) SendMessage(chatID domain.ID, sessionID domain.ID, message s
 
 }
 
-func (m *Messaging) DeleteMessage(chatID domain.ID, sessionID domain.ID) error {
+func (m *Messaging) DeleteMessage(chatID, sessionID, messageID domain.ID) error {
 	isUserInChat, err := m.SessionService.IsUserInChat(sessionID, chatID)
 	if err != nil {
 		if errors.Is(err, repositories.ErrChatNotFound) {
-			return fmt.Errorf("user is not in chat or chat ID is wrong: %v", err)
+			return fmt.Errorf("user is not in chat or chat ID is wrong: %w", err)
 		}
 		return err
 	}
 
-	if isUserInChat == "" {
-		return fmt.Errorf("user role in chat is missing")
+	if isUserInChat != domain.Owner && isUserInChat != domain.Admin && isUserInChat != domain.Normal {
+		return fmt.Errorf("user is not authorized to delete message")
 	}
 
-	if isUserInChat == "owner" || isUserInChat == "admin" || isUserInChat == "user" {
-		if err = m.SessionService.DeleteSession(sessionID); err != nil {
-			return err
-		}
+	err = m.MessageService.DeleteMessage(chatID)
+
+	if err != nil {
+		return err
 	}
+
 	return nil
 }

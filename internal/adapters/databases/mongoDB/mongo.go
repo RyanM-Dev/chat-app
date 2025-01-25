@@ -2,6 +2,8 @@ package mongoDB
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -46,4 +48,23 @@ func NewMongoRepository(mongoURI, mongoDB string, mongoTimeout int) (*MongoRepos
 
 func (mr *MongoRepository) GetCollection(collectionName string) *mongo.Collection {
 	return mr.client.Database(mr.database).Collection(collectionName)
+}
+
+func (mr *MongoRepository) EnsureIndexes() error {
+	messageColl := mr.GetCollection("messages")
+
+	indexModel := mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "chat_id", Value: 1},
+			{Key: "created_time", Value: -1},
+		},
+	}
+
+	_, err := messageColl.Indexes().CreateOne(context.Background(), indexModel)
+	if err != nil {
+		return err
+	}
+	log.Println("Index ensured for messages collection")
+
+	return nil
 }

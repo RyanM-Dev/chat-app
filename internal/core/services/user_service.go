@@ -16,36 +16,37 @@ func NewUserService(user repositories.UserRepository) *UserService {
 }
 
 func ValidateUser(user domain.User) error {
+	var errs []error
+
 	if user.ID == "" {
-		return fmt.Errorf("ID is required")
+		errs = append(errs, errors.New("ID is required"))
 	}
 	if user.Username == "" {
-		return fmt.Errorf("username is required")
+		errs = append(errs, errors.New("username is required"))
 	}
-
 	if user.FirstName == "" {
-		return fmt.Errorf("first name is required")
+		errs = append(errs, errors.New("first name is required"))
 	}
 	if user.LastName == "" {
-		return fmt.Errorf("last name is required")
+		errs = append(errs, errors.New("last name is required"))
 	}
 	if user.Password == "" {
-		return fmt.Errorf("password is required")
+		errs = append(errs, errors.New("password is required"))
 	}
-
 	if user.Gender == 0 {
-		return fmt.Errorf("gender is required")
+		errs = append(errs, errors.New("gender is required"))
 	}
-
 	if user.Email == "" {
-		return fmt.Errorf("email is required")
+		errs = append(errs, errors.New("email is required"))
+	}
+	if user.DateOfBirth == nil {
+		errs = append(errs, errors.New("date of birth is required"))
 	}
 
-	if user.DateOfBirth == nil {
-		return fmt.Errorf("date of birth is required")
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 	return nil
-
 }
 
 func (us *UserService) Register(user domain.User) (userID domain.ID, err error) {

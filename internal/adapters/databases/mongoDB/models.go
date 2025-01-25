@@ -18,10 +18,11 @@ type MongoChat struct {
 }
 
 type MongoMessage struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
-	SenderID primitive.ObjectID `bson:"sender_id"`
-	ChatID   primitive.ObjectID `bson:"chat_id"`
-	Content  string             `bson:"content"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	SenderID    primitive.ObjectID `bson:"sender_id"`
+	ChatID      primitive.ObjectID `bson:"chat_id"`
+	CreatedTime *time.Time         `bson:"created_time"`
+	Content     string             `bson:"content"`
 }
 
 type MongoUser struct {
@@ -33,6 +34,7 @@ type MongoUser struct {
 	Gender      int                  `bson:"gender"`
 	Email       string               `bson:"email"`
 	Contacts    []primitive.ObjectID `bson:"contacts"`
+	ChatIDList  []primitive.ObjectID `bson:"chat_id_list"`
 	DateOfBirth *time.Time           `bson:"date_of_birth"`
 	CreatedTime *time.Time           `bson:"created_time"`
 	DeletedTime *time.Time           `bson:"deleted_time"`
@@ -96,30 +98,31 @@ func (mc *MongoChat) ToDomainChat() domain.Chat {
 	}
 }
 
-func ToMongoMessage(message domain.Message) MongoMessage {
+func ToMongoMessage(message domain.Message) (MongoMessage, error) {
 	senderID, err := primitive.ObjectIDFromHex(string(message.SenderID))
 	if err != nil {
-		panic(err)
+		return MongoMessage{}, err
 	}
-
 	chatID, err := primitive.ObjectIDFromHex(string(message.ChatID))
 	if err != nil {
-		panic(err)
+		return MongoMessage{}, err
 	}
-
+	//createdTime := time.Now() // Automatically set CreatedTime
 	return MongoMessage{
 		SenderID: senderID,
 		ChatID:   chatID,
 		Content:  message.Content,
-	}
+		//CreatedTime: &createdTime,
+	}, nil
 }
 
 func (mm *MongoMessage) ToDomainMessage() domain.Message {
 	return domain.Message{
-		ID:       domain.ID(mm.ID.Hex()),
-		SenderID: domain.ID(mm.SenderID.Hex()),
-		ChatID:   domain.ID(mm.ChatID.Hex()),
-		Content:  mm.Content,
+		ID:          domain.ID(mm.ID.Hex()),
+		SenderID:    domain.ID(mm.SenderID.Hex()),
+		ChatID:      domain.ID(mm.ChatID.Hex()),
+		CreatedTime: mm.CreatedTime,
+		Content:     mm.Content,
 	}
 }
 

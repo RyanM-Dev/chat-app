@@ -43,21 +43,33 @@ func (mr *MongoRepository) Login(username, password string) (domain.ID, error) {
 }
 
 func (mr *MongoRepository) GetChatIDList(userID domain.ID) ([]domain.ID, error) {
-	//coll := mr.GetCollection("chats")
-	//mongoUserID, err := primitive.ObjectIDFromHex(string(userID))
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//projection := bson.M{"_id": 1}
-	//
-	//filter := bson.M{"members": mongoUserID}
-	//
-	//var result struct {
-	//	ChatIDList []primitive.ObjectID
-	//}
-	//
-	//err := coll.FindOne(context.Background(), filter).Decode(&result)
+	coll := mr.GetCollection("users")
+
+	mongoUserID, err := primitive.ObjectIDFromHex(string(userID))
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{"_id": mongoUserID}
+	projection := bson.M{"chat_id_list": 1}
+
+	var result struct {
+		ChatIDList []primitive.ObjectID `bson:"chat_id_list"`
+	}
+
+	err = coll.FindOne(context.Background(), filter, options.FindOne().SetProjection(projection)).Decode(&result)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, fmt.Errorf("user not found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to get chat ID list: %w", err)
+	}
+
+	// Convert MongoDB ObjectIDs to domain IDs
+	var domainChatIDList []domain.ID
+	for _, chatID := range result.ChatIDList {
+		domainChatIDList = append(domainChatIDList, domain.ID(chatID.Hex()))
+	}
+	return domainChatIDList, nil
 }
 
 func (mr *MongoRepository) AddContact(userID, contactID domain.ID) error {
@@ -86,6 +98,7 @@ func (mr *MongoRepository) AddContact(userID, contactID domain.ID) error {
 	}
 
 	return nil
+
 }
 
 func (mr *MongoRepository) RemoveContact(userID, contactID domain.ID) error {
